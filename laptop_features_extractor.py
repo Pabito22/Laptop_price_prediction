@@ -1,3 +1,5 @@
+import re
+
 def split_memory_string(input_string):
     """Splits the strings in the following way:
     input_string: '256GB SSD +  256GB SSD'
@@ -64,4 +66,38 @@ def take_memory_size_and_type(word_in):
         return take_memory_and_type_from_one(word_in)
 
 
+
+def extract_numeric(value):
+    """Extracts numeric  value from a given word
+    eg '1.2GHz' (string) -> 1.2 (float)
+    """
+    match = re.search(r'\d+(\.\d+)?', value)
+    return float(match.group()) if match else None
+
+
     
+
+def take_Ghz_fromCPU(data):
+    """
+    It extracts number of GHz from a typical 
+    value in the 'Cpu' column
+    It assumes that the last word in the string
+    contains number of GHz!
+    
+    param: data (string) - contains info about number of GHz
+    (from the Cpu column)
+    returns: nr of GHz (float)
+    """
+    words = data.split(' ')
+    word = words[-1]
+    if 'GHz' in word:
+        nr_of_GHz = extract_numeric(word)
+        return nr_of_GHz
+    else:
+        raise ValueError("The last word is not of the form '2.3GHz'!")
+
+def take_nrofPixels_fromScreenResolution(data):
+    words = data.split(' ')
+    word = words[-1]
+    numbers = word.split('x')
+    return float(numbers[0]) * float(numbers[1])
