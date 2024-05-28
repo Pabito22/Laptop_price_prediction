@@ -1,4 +1,5 @@
 import re
+import numpy as np
 
 def split_memory_string(input_string):
     """Splits the strings in the following way:
@@ -46,7 +47,7 @@ def take_memory_and_type_from_one(word_in):
 
 
 
-def take_memory_size_and_type(word_in):
+def take_size_type_fromMemory(word_in):
     """
     when a word of the format '256GB SSD +  256GB SSD'
     is given it returns a list of the format:
@@ -97,7 +98,17 @@ def take_Ghz_fromCPU(data):
         raise ValueError("The last word is not of the form '2.3GHz'!")
 
 def take_nrofPixels_fromScreenResolution(data):
+    """
+    Extracts number of pixels from the 'ScreenResolution'
+    column
+    eg: 'Full HD 1920x1080' (string) -> 2073600 (float) 
+    -------
+    Param: data (sring) - A value fromm the ScreenResolution
+    Returns: number_of_pixels (float)
+    """
     words = data.split(' ')
     word = words[-1]
     numbers = word.split('x')
-    return float(numbers[0]) * float(numbers[1])
+    number_of_pixels = float(numbers[0]) * float(numbers[1])
+    return number_of_pixels
+
