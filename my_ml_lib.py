@@ -5,56 +5,61 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 def num_attrs_combinations(DataFrame_num_o):
     """
-    Returns a DataFrame with additional columns representing all possible numerical attribute combinations.
+    Create a new DataFrame containing combinations of existing numerical attributes as ratios,
+    and include the label column from the original DataFrame.
+
+    For each pair of numerical attributes in the input DataFrame (excluding the last column, assumed to be the label),
+    the function generates two new attributes representing the ratio of each attribute to the other. If division by zero
+    occurs, it skips that particular combination.
 
     Parameters:
-    - DataFrame_num_o (pandas.DataFrame): The input DataFrame containing numerical attributes.
-    !!!IT IS ASSUMED THAT THE LABEL IS IN THE LAST COLUMN OF THE DATA FRAME!!!
-    Returns:
-    - DataFrame_num (pandas.DataFrame): A DataFrame with additional columns representing all possible numerical attribute combinations. 
-      Each combination column is named as 'Attr1_per_Attr2', where Attr1 and Attr2 are the names of the attributes involved in the combination.
+    - DataFrame_num_o (pandas.DataFrame): The input DataFrame containing numerical attributes and a label column as the last column.
 
-    This function iterates through each pair of numerical attributes in the input DataFrame and creates new columns 
-    representing their combinations (i.e., division of one attribute by another). If a division by zero occurs, 
-    it tries the division in the opposite order and adds the resulting column accordingly. 
-    If both attempts result in division by zero, no new column is added for that pair of attributes.
+    Returns:
+    - new_df (pandas.DataFrame): A new DataFrame containing the generated ratio attributes (without the label!).
 
     Example:
-    --------
-    Suppose DataFrame_num_o is the input DataFrame:
-    
-        |   A   |   B   |   C   |
-        |-------|-------|-------|
-        |   1   |   2   |   3   |
-        |   4   |   5   |   6   |
-        |   7   |   8   |   9   |
-    
-    Calling num_attrs_combinations(DataFrame_num_o) would return a DataFrame with additional combination columns:
-    
-        |   A   |   B   |   C   |   A_per_B   |   A_per_C   |   B_per_C   |
-        |-------|-------|-------|-------------|-------------|-------------|
-        |   1   |   2   |   3   |   0.5       |   0.333...  |   0.666...  |
-        |   4   |   5   |   6   |   0.8       |   0.666...  |   0.833...  |
-        |   7   |   8   |   9   |   0.875...  |   0.777...  |   0.888...  |
+    >>> import pandas as pd
+    >>> data = {
+    >>>     'Feature1': [1, 2, 3, 4, 5],
+    >>>     'Feature2': [5, 4, 3, 2, 1],
+    >>>     'Label': [10, 20, 30, 40, 50]
+    >>> }
+    >>> df = pd.DataFrame(data)
+    >>> new_df = num_attrs_combinations(df)
+    >>> print(new_df)
+       Feature1_per_Feature2  Feature2_per_Feature1  
+    0                   0.20                   5.00     
+    1                   0.50                   2.00     
+    2                   1.00                   1.00     
+    3                   2.00                   0.50     
+    4                   5.00                   0.20     
     """
     DataFrame_num = DataFrame_num_o.copy()
-    attrs_size = DataFrame_num.columns.size-1 #don't count the label
-    for i in np.arange(attrs_size):
-        j=i+1
-        while j < attrs_size:
+    new_df = pd.DataFrame()
+    attrs_size = DataFrame_num.columns.size - 1 # don't count the label
+
+    for i in range(attrs_size):
+        for j in range(i + 1, attrs_size):
+            col_i = DataFrame_num.columns[i]
+            col_j = DataFrame_num.columns[j]
             try:
-                new_attr_val = DataFrame_num.iloc[:,i]/DataFrame_num.iloc[:,j]
-                new_attr_name = DataFrame_num.columns[i] + "_per_" + DataFrame_num.columns[j]
+                new_attr_val = DataFrame_num.iloc[:, i] / DataFrame_num.iloc[:, j]
+                new_attr_name = col_i + "_per_" + col_j
+                new_df[new_attr_name] = new_attr_val
             except ZeroDivisionError:
                 try:
-                    new_attr_val = DataFrame_num.iloc[:,j] / DataFrame_num.iloc[:,i]
-                    new_attr_name = DataFrame_num.columns[j] + "_per_" + DataFrame_num.columns[i]
+                    new_attr_val = DataFrame_num.iloc[:, j] / DataFrame_num.iloc[:, i]
+                    new_attr_name = col_j + "_per_" + col_i
+                    new_df[new_attr_name] = new_attr_val
                 except ZeroDivisionError:
                     continue
-            
-            DataFrame_num[new_attr_name] = new_attr_val
-            j+=1
-    return DataFrame_num
+    
+    # assign the label to the new Data Frame
+    label_column = DataFrame_num.columns[-1]
+    new_df[label_column] = DataFrame_num[label_column].values
+    
+    return new_df.drop(columns=[label_column]) #remove the label
         
 
 
@@ -70,21 +75,16 @@ def potential_attrs(DataFr, label_name, corr_tresh):
       greater than corr_tresh or less than -corr_tresh will be considered potential attributes.
 
     Returns:
-    - potential_attrs (pandas.Index): A pandas Index containing the names of potential attributes that meet the criteria.
-    - corrs_with_label (numpy.ndarray): An array containing the correlation coefficients of the potential attributes
+    - potential_attrs (pandas.Index): A pandas Index containing the names of attributes that meet the criteria.
+    - corrs_with_label (numpy.ndarray): An array containing the correlation coefficients of the attributes
       with respect to the label.
 
-    Example:
-    >>> import pandas as pd
-    >>> import numpy as np
-    >>> data = {'Feature1': [1, 2, 3, 4, 5], 'Feature2': [5, 4, 3, 2, 1], 'Label': [10, 20, 30, 40, 50]}
-    >>> df = pd.DataFrame(data)
-    >>> potential_attrs(df, 'Label', 0.5)
-    (Index(['Feature2'], dtype='object'), array([-1.]))
     """
-    attrs_corrs = DataFr.corr()[label_name].values
-
+    corr_matrix = DataFr.corr()
+    attrs_corrs = corr_matrix[label_name].drop(label_name).values
     potential = np.logical_or(attrs_corrs > corr_tresh, attrs_corrs < -corr_tresh)
+    potential_attrs = corr_matrix[label_name].drop(label_name).index[potential]
 
-    return DataFr.columns[potential], attrs_corrs[potential]
+    return potential_attrs, attrs_corrs[potential]
+
 
