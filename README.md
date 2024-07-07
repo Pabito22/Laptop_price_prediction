@@ -5,18 +5,18 @@ The objective of this project is to create a ML model that will predict prices o
 I am working on the dataset downloaded from  https://www.kaggle.com/datasets/muhammetvarl/laptop-price   
 This dataset consists of 1042 examples, where each example contains the following columns:
 
-1 Company- String -Laptop Manufacturer
-2 Product -String -Brand and Model
-3 TypeName -String -Type (Notebook, Ultrabook, Gaming, etc.)
-4 Inches -Numeric- Screen Size
-5 ScreenResolution -String- Screen Resolution
-6 Cpu- String -Central Processing Unit (CPU)
-7 Ram -String- Laptop RAM
-8 Memory -String- Hard Disk / SSD Memory
-9 GPU -String- Graphics Processing Units (GPU)
-10 OpSys -String- Operating System
-11 Weight -String- Laptop Weight
-12 Price_euros -Numeric- Price (Euro)
+1 Company- String -Laptop Manufacturer    
+2 Product -String -Brand and Model     
+3 TypeName -String -Type (Notebook, Ultrabook, Gaming, etc.)    
+4 Inches -Numeric- Screen Size     
+5 ScreenResolution -String- Screen Resolution    
+6 Cpu- String -Central Processing Unit (CPU)    
+7 Ram -String- Laptop RAM    
+8 Memory -String- Hard Disk / SSD Memory    
+9 GPU -String- Graphics Processing Units (GPU)    
+10 OpSys -String- Operating System    
+11 Weight -String- Laptop Weight    
+12 Price_euros -Numeric- Price (Euro)    
 
 I am extracting information from these columns to create a machine learning model for price prediction.
 
